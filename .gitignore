@@ -1,4 +1,4 @@
 # created by virtualenv automatically
 venv/Lib
 /venv
-__pycache__
+/app/__pycache__
