@@ -5,8 +5,11 @@ import psycopg2 as psycopg2
 from fastapi import FastAPI, Body, Response, status, HTTPException
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
+from app.configuration import settings
 
 app = FastAPI()
+
+print(settings.DATABASE_NAME)
 
 
 class Students(BaseModel):
@@ -23,7 +26,8 @@ class Product(BaseModel):
 
 
 try:
-    conn = psycopg2.connect(host='localhost', database='crud', user='postgres', password='pass123',
+    conn = psycopg2.connect(host=settings.DATABASE_HOSTNAME, database=settings.DATABASE_NAME,
+                            user=settings.DATABASE_USER, password=settings.DATABASE_PASSWORD,
                             cursor_factory=RealDictCursor)
     cursor = conn.cursor()
     print("Database connection was successful!")
