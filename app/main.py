@@ -2,11 +2,24 @@ import sqlite3, os
 from typing import Optional
 
 import psycopg2 as psycopg2
-from fastapi import FastAPI, Body, Response, status, HTTPException
+from fastapi import FastAPI, Body, Response, status, HTTPException, Depends
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from app import models
+from app.database import engine, SessionLocal
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 class Students(BaseModel):
@@ -48,6 +61,11 @@ def get_products():
     cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
     return products
+
+
+@app.get("/testing")
+def test(db: Session = Depends(get_db)):
+    return {"message": "Success"}
 
 
 '''list_accumulator = []
