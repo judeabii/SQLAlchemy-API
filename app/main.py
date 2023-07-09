@@ -23,7 +23,7 @@ class Product(BaseModel):
 
 
 try:
-    conn = psycopg2.connect(host='localhost', database='crud', user='postgres', password='Manutd@20',
+    conn = psycopg2.connect(host='localhost', database='crud', user='postgres', password='pass123',
                             cursor_factory=RealDictCursor)
     cursor = conn.cursor()
     print("Database connection was successful!")
