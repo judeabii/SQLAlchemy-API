@@ -38,13 +38,14 @@ except Exception as error:
 
 
 @app.get("/products/{prod_id}")
-def get_product(prod_id, response: Response):
-    cursor.execute("SELECT * FROM products where id = %s", [prod_id])
+def get_product(prod_id, response: Response, db: Session = Depends(get_db)):
+    product = db.query(models.Products).filter(models.Products.id == prod_id).first()
+    '''cursor.execute("SELECT * FROM products where id = %s", [prod_id])
     product = cursor.fetchone()
-    print(product)
+    print(product)'''
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'The student with the id: {prod_id} was not found')
+                            detail=f'The product with the id: {prod_id} was not found')
     return product
 
 
@@ -52,12 +53,6 @@ def get_product(prod_id, response: Response):
 def get_products(db: Session = Depends(get_db)):
     """cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()"""
-    products = db.query(models.Products).all()
-    return products
-
-
-@app.get("/testing")
-def test(db: Session = Depends(get_db)):
     products = db.query(models.Products).all()
     return products
 
@@ -101,30 +96,36 @@ def add_product(product: Product, db: Session = Depends(get_db)):
 
 
 @app.delete('/products/{prod_id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(prod_id: int):
-    cursor.execute("DELETE FROM products where id = %s RETURNING *", [str(prod_id)])
+def delete_product(prod_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Products).filter(models.Products.id == prod_id)
+    '''cursor.execute("DELETE FROM products where id = %s RETURNING *", [str(prod_id)])
     product = cursor.fetchone()
     print(product)
-    conn.commit()
-    if product is None:
+    conn.commit()'''
+    if product.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'The student with the id: {prod_id} was not found')
+                            detail=f'The product with the id: {prod_id} was not found')
     else:
+        product.delete(synchronize_session='fetch')
+        db.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put('/products/{prod_id}', status_code=status.HTTP_200_OK)
-def update_product(prod_id: int, product: Product):
-    name = product.name
+def update_product(prod_id: int, product: Product,db: Session = Depends(get_db)):
+    updated_product = db.query(models.Products).filter(models.Products.id == prod_id)
+    '''name = product.name
     price = product.price
     is_sale = product.is_sale
 
     cursor.execute("UPDATE products SET name = %s, Price = %s, is_sale= %s where ID = %s RETURNING *",
                    (name, price, is_sale, str(prod_id)))
     value = cursor.fetchone()
-    conn.commit()
-    if value is None:
+    conn.commit()'''
+    if updated_product.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'The student with the id: {prod_id} was not found')
+                            detail=f'The product with the id: {prod_id} was not found')
     else:
+        updated_product.update(product.dict(),synchronize_session="fetch")
+        db.commit()
         return {'message': 'successfully updated'}
