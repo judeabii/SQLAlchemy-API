@@ -7,19 +7,11 @@ from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app import models
-from app.database import engine, SessionLocal
+from app.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 class Students(BaseModel):
@@ -57,15 +49,17 @@ def get_product(prod_id, response: Response):
 
 
 @app.get("/products")
-def get_products():
-    cursor.execute("SELECT * FROM products")
-    products = cursor.fetchall()
+def get_products(db: Session = Depends(get_db)):
+    """cursor.execute("SELECT * FROM products")
+    products = cursor.fetchall()"""
+    products = db.query(models.Products).all()
     return products
 
 
 @app.get("/testing")
 def test(db: Session = Depends(get_db)):
-    return {"message": "Success"}
+    products = db.query(models.Products).all()
+    return products
 
 
 '''list_accumulator = []
@@ -91,14 +85,18 @@ def write(payload: dict = Body(...)):   # Can use a list here too
 
 
 @app.post("/products", status_code=status.HTTP_201_CREATED)
-def add_product(product: Product):
-    data = product.dict()
+def add_product(product: Product, db: Session = Depends(get_db)):
+    new_product = models.Products(**product.dict())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    '''data = product.dict()
     name = data['name']
     price = data['price']
     is_sale = data['is_sale']
     cursor.execute("INSERT INTO products (name,price,is_sale) Values(%s,%s,%s) RETURNING *", (name, price, is_sale))
     new_product = cursor.fetchone()
-    conn.commit()
+    conn.commit()'''
     return new_product
 
 
