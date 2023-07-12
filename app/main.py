@@ -114,3 +114,12 @@ def update_product(prod_id: int, product: schemas.CreateProduct, db: Session = D
         updated_product.update(product.dict(), synchronize_session="fetch")
         db.commit()
         return updated_product.first()
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
+def user_registration(user: schemas.User, db: Session = Depends(get_db)):
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
