@@ -1,31 +1,16 @@
 import sqlite3, os
-from typing import Optional
+from typing import List
 
 import psycopg2 as psycopg2
 from fastapi import FastAPI, Body, Response, status, HTTPException, Depends
 from psycopg2.extras import RealDictCursor
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app import models
+from app import models, schemas
 from app.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-class Students(BaseModel):
-    name: str
-    grade: int
-    email: str
-    graduated: Optional[bool] = True
-
-
-class Product(BaseModel):
-    name: str
-    price: int
-    is_sale: Optional[bool] = False
-
 
 try:
     conn = psycopg2.connect(host='localhost', database='crud', user='postgres', password='pass123',
@@ -37,7 +22,7 @@ except Exception as error:
     print(f"Error: {error}")
 
 
-@app.get("/products/{prod_id}")
+@app.get("/products/{prod_id}", response_model=schemas.Product)
 def get_product(prod_id, response: Response, db: Session = Depends(get_db)):
     product = db.query(models.Products).filter(models.Products.id == prod_id).first()
     '''cursor.execute("SELECT * FROM products where id = %s", [prod_id])
@@ -49,7 +34,7 @@ def get_product(prod_id, response: Response, db: Session = Depends(get_db)):
     return product
 
 
-@app.get("/products")
+@app.get("/products", response_model=List[schemas.Product])
 def get_products(db: Session = Depends(get_db)):
     """cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()"""
@@ -79,8 +64,8 @@ def write(payload: dict = Body(...)):   # Can use a list here too
 '''
 
 
-@app.post("/products", status_code=status.HTTP_201_CREATED)
-def add_product(product: Product, db: Session = Depends(get_db)):
+@app.post("/products", status_code=status.HTTP_201_CREATED, response_model=schemas.Product)
+def add_product(product: schemas.ProductBase, db: Session = Depends(get_db)):
     new_product = models.Products(**product.dict())
     db.add(new_product)
     db.commit()
@@ -111,8 +96,8 @@ def delete_product(prod_id: int, db: Session = Depends(get_db)):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put('/products/{prod_id}', status_code=status.HTTP_200_OK)
-def update_product(prod_id: int, product: Product,db: Session = Depends(get_db)):
+@app.put('/products/{prod_id}', response_model=schemas.Product)
+def update_product(prod_id: int, product: schemas.CreateProduct, db: Session = Depends(get_db)):
     updated_product = db.query(models.Products).filter(models.Products.id == prod_id)
     '''name = product.name
     price = product.price
@@ -126,6 +111,6 @@ def update_product(prod_id: int, product: Product,db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'The product with the id: {prod_id} was not found')
     else:
-        updated_product.update(product.dict(),synchronize_session="fetch")
+        updated_product.update(product.dict(), synchronize_session="fetch")
         db.commit()
-        return {'message': 'successfully updated'}
+        return updated_product.first()
