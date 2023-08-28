@@ -1,6 +1,8 @@
-# FullStack-API
-This project focuses on building a scalable API using FastAPI, a high-performance Python web framework.
+# SQLAlchemy-API
+Explore the power of modern web development with this project that combines FASTAPI, a high-performance web framework for building APIs, and SQLAlchemy, a versatile SQL toolkit and ORM.
+### FastAPI
+FastAPI is a modern, high-performance, and easy-to-use web framework for building APIs with Python.
 
-Covers API design, serialization/deserialization, 
-schema validation, design models with ORM, SQL 
-integration and User authentication.
+### SQLAlchemy
+SQLAlchemy is an open-source SQL toolkit and Object-Relational Mapping (ORM) library for the Python programming language.
+
