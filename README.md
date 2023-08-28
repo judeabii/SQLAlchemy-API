@@ -43,3 +43,33 @@ In order to create the tables in Postgres using the DB connections via SQLAlchem
 ```commandline
 models.Base.metadata.create_all(bind=engine)
 ```
+### Database Operations (CRUD)
+To perform any operation on a database, we first have to open a session to the database, and after the operation, close the session.
+Function to create a session and close:
+```commandline
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+```
+We can use this function to establish sessions: `db: Session = Depends(get_db)`
+
+#### Read
+```commandline
+@app.get("/products", response_model=List[schemas.Product])
+def get_products(db: Session = Depends(get_db)):
+    products = db.query(models.Products).all()
+    return products
+```
+#### Write
+```commandline
+@app.post("/products", status_code=status.HTTP_201_CREATED, response_model=schemas.Product)
+def add_product(product: schemas.ProductBase, db: Session = Depends(get_db)):
+    new_product = models.Products(**product.dict())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
+```
