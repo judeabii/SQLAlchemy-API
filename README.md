@@ -6,6 +6,13 @@ FastAPI is a modern, high-performance, and easy-to-use web framework for buildin
 ### SQLAlchemy
 SQLAlchemy is an open-source SQL toolkit and Object-Relational Mapping (ORM) library for the Python programming language.
 
+### Pre-Requisites
+```commandline
+pip install sqlalchemy
+pip install fastapi[all]
+pip install passlib[bcrypt]
+```
+
 ## Connecting to a Database using SQLAlchemy
 ```commandline
 SQLALCHEMY_DATABASE_URL = "postgresql://<username>:<password>@<ip-address/hostname>/<database-name>"
