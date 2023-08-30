@@ -122,3 +122,13 @@ def user_registration(user: schemas.User, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+@app.get("/users/{user_id}", response_model=schemas.UserResponse)
+def get_user(user_id, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'The user was not found')
+    else:
+        return user.first()
