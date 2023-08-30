@@ -1,11 +1,9 @@
-import sqlite3, os
 from typing import List
-
 import psycopg2 as psycopg2
 from fastapi import FastAPI, Body, Response, status, HTTPException, Depends
 from psycopg2.extras import RealDictCursor
 from sqlalchemy.orm import Session
-from app import models, schemas
+from app import models, schemas, utils
 from app.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -118,6 +116,7 @@ def update_product(prod_id: int, product: schemas.CreateProduct, db: Session = D
 
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 def user_registration(user: schemas.User, db: Session = Depends(get_db)):
+    user.password = utils.hash_pass(user.password)
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()

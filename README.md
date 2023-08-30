@@ -80,3 +80,17 @@ def add_product(product: schemas.ProductBase, db: Session = Depends(get_db)):
     db.refresh(new_product)
     return new_product
 ```
+
+### Hashing user passwords
+`from passlib.context import CryptContext`
+
+Now we have to tell passlib what _hashing algorithm_ do we want to use. 
+In our case it will be *Bcrypt*
+
+` pwd_context = CryptContext(schemes=["bcrypt"], depreciated="auto")`
+
+To actually hash the password:
+```commandline
+hashed_password = pwd_context.hash(user.password)
+user.password = hashed_password # Updating the password value from payload   with hashed password
+```
